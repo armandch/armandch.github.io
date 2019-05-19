@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Oracle unable to extend temp segment in tablespace | Chenism</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="description" content="Oracle tablespace problem and resolution." />
+  <meta name="author" content="I-Fan Chen" />
+  <meta name="generator" content="Hugo 0.55.5" />
+  <link href="https://armandch.github.io/index.xml" rel="alternate" type="application/rss+xml" title="Chenism Feed" />
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="https://armandch.github.io/assets/style-compat.css" />
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="https://armandch.github.io/assets/style.css" />
+  <!--<![endif]-->
+</head>
+<body>
+<div class="pure-g">
+  <div class="pure-u-1-24 pure-u-md-5-24"></div>
+  <div class="pure-u-22-24 pure-u-md-14-24">
+  
+<div class="navigation">
+  <div class="navigation-header clearfix">
+    <div class="pure-menu pure-menu-horizontal">
+      <a class="pure-menu-heading pure-menu-link" href="https://armandch.github.io/">
+        Chenism
+      </a>
+      <ul class="pure-menu-list navigation-header-subtitle pull-end">
+        <li class="pure-menu-item pure-menu-disabled">Things Chen said</li>
+      </ul>
+    </div>
+  </div>
+  <div class="navigation-content">
+    <div class="pure-menu pure-menu-horizontal">
+      <ul class="pure-menu-list">
+        <li class="pure-menu-item" title="All posts">
+          <a  class="pure-menu-link" href="https://armandch.github.io/posts/">Posts</a>
+        </li>
+        <li class="pure-menu-item" title="All categories">
+          <a  class="pure-menu-link" href="https://armandch.github.io/categories/">Categories</a>
+        </li>
+        <li class="pure-menu-item" title="All series">
+          <a  class="pure-menu-link" href="https://armandch.github.io/series/">Series</a>
+        </li>
+        <li class="pure-menu-item" title="All tags">
+          <a  class="pure-menu-link" href="https://armandch.github.io/tags/">Tags</a>
+        </li>
+        <li class="pure-menu-item" title="About">
+          <a  class="pure-menu-link" href="https://armandch.github.io/about/">About</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+  
+<div>
+  <div>
+    <h2 class="post-title">
+      
+      Oracle unable to extend temp segment in tablespace
+    </h2>
+    
+<div class="post-meta">
+  <span>Date</span> &#x5b;
+    <time datetime="2019-04-19T01:14:50-04:00">
+      Fri, 19 Apr 2019 01:14:50 EDT
+    </time>
+  &#x5d;
+        
+        
+  <span>Categories</span> &#x5b;
+    <a href="https://armandch.github.io/categories/technology">Technology</a>
+  &#x5d;
+</div>
+
+  </div>
+  <div>
+    <p>In order to test a data conversion tool which my team had been developing for weeks, we wanted to import the latest database dump from production to our develop environment so we can run the tool against the latest data and assess the conversion result.</p>
+
+<p>The database in our environment was Oracle 11g Release 2, and the DMP file to be imported was about 34 GB.  I let the import process ran overnight, only to realize next morning that it failed.  I checked the alert log which in our case is under <code>/ora01/app/oracle/diag/rdbms/orcl/orcldv/alert/log.xml</code> and realized there was an error in the log: <code>ORA-1652: unable to extend temp segment by 1024 in tablespace</code>.  At first this seemed weird to me but after talking to our DBA I realized this actually meant the datafile of the tablespace I was using, instead of system temp, reached its size limit.</p>
+
+<p>The reasonable solution to this problem was to add more datafile to my tablespace.  However I wanted to make sure the datafile really reached its limit.  So I ran the following query to find out the block size of my database:</p>
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">select</span> <span class="n">value</span> <span class="k">from</span> <span class="n">v$parameter</span> <span class="k">where</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;db_block_size&#39;</span><span class="p">;</span></code></pre></div>
+<p>The result is 8,192.  According to a table I stole from StackOverflow, my maximum datafile size was 32 GB:</p>
+<div class="highlight"><pre class="chroma">Block Sz   Max Datafile Sz (Gb)   Max DB Sz (Tb)
+
+--------   --------------------   --------------
+
+   2,048                  8,192          524,264
+
+   4,096                 16,384        1,048,528
+
+   8,192                 32,768        2,097,056
+
+  16,384                 65,536        4,194,112
+
+  32,768                131,072        8,388,224</pre></div>
+<p>And yes, the size of my datafile had indeed reached its limit.  So I proceeded to add one more datafile to my tablespace by running the following query:</p>
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">alter</span> <span class="n">tablespace</span> <span class="n">my_tablespace</span>
+  <span class="k">add</span> <span class="n">datafile</span> <span class="s1">&#39;mytablespace02.dbf&#39;</span> <span class="k">size</span> <span class="mi">10</span><span class="n">m</span> <span class="n">autoextend</span> <span class="k">on</span> <span class="n">maxsize</span> <span class="n">unlimited</span><span class="p">;</span></code></pre></div>
+<p>And I can confirm the datafile was added by running the query below:</p>
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">select</span> <span class="n">bytes</span><span class="o">/</span><span class="mi">1024</span><span class="o">/</span><span class="mi">1024</span> <span class="k">as</span> <span class="n">mb_size</span><span class="p">,</span>
+       <span class="n">maxbytes</span><span class="o">/</span><span class="mi">1024</span><span class="o">/</span><span class="mi">1024</span> <span class="k">as</span> <span class="n">maxsize_set</span><span class="p">,</span>
+       <span class="n">x</span><span class="p">.</span><span class="o">*</span>
+<span class="k">from</span>   <span class="n">dba_data_files</span> <span class="n">x</span><span class="p">;</span></code></pre></div>
+<p>After resume importing the dump file, everything worked like a charm.</p>
+
+  </div>
+</div>
+  <div class="footer">
+  <div class="pure-menu pure-menu-horizontal">
+    <ul class="pure-menu-list">
+      <li class="pure-menu-item" title="My Git repositories">
+        <a class="pure-menu-link" href="https://github.com/armandch">GitHub</a>
+      </li>
+      <li class="pure-menu-item" title="My Twitter account">
+        <a class="pure-menu-link" href="https://twitter.com/armandch">Twitter</a>
+      </li>
+      <li class="pure-menu-item" title="RSS Feed">
+        <a href="https://armandch.github.io/index.xml" class="pure-menu-link">RSS</a>
+      </li>
+      <li class="pure-menu-item fix-cursor-pointer" title="Go to top">
+        <a class="pure-menu-link" id="btn-gototop">
+          <span class="fix-placement-up">&#x21e7;&#xfe0e;</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="pure-menu pure-menu-horizontal">
+    <ul class="pure-menu-list">
+      <li class="pure-menu-item pure-menu-disabled">
+        &copy; 2019 &mdash; I-Fan Chen — All rights reserved.
+      </li>
+    </ul>
+  </div>
+</div>
+<script>
+  function setElementsClass(selector, value) {
+    Array.prototype.forEach.call(
+      document.querySelectorAll(selector),
+      function(elem) { elem.className = value; }
+    );
+  }
+
+  setElementsClass('img', 'pure-img');
+  setElementsClass('table', 'pure-table');
+
+  function onResize() {
+      Array.prototype.forEach.call(
+        [{
+          selector: '.pure-menu',
+          hi: 'pure-menu pure-menu-horizontal',
+          lo: 'pure-menu'
+        }, {
+          selector: '.navigation-header-subtitle',
+          hi: 'pure-menu-list navigation-header-subtitle pull-end',
+          lo: 'pure-menu-list navigation-header-subtitle'
+        }, {
+          selector: '.navigation-header',
+          hi: 'navigation-header clearfix',
+          lo: 'navigation-header'
+        }],
+        function(elem) {
+          setElementsClass(
+            elem.selector,
+            document.documentElement.clientWidth >= 768 ? elem.hi : elem.lo
+          );
+        }
+      );
+  }
+  onResize();
+  window.addEventListener('resize', onResize);
+
+  document.getElementById('btn-gototop').addEventListener('click', function() {
+    function scroll() {
+      if (window.pageYOffset > 0) { setTimeout(scroll, 8); }
+      window.scroll(0, window.pageYOffset - 128);
+    }
+    scroll();
+  });
+</script>
+
+  </div>
+  <div class="pure-u-1-24 pure-u-md-5-24"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>https://armandch.github.io/categories/audiophile/</loc>
+    <lastmod>2019-05-08T22:39:00-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://armandch.github.io/categories/</loc>
+    <lastmod>2019-05-08T22:39:00-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://armandch.github.io/</loc>
+    <lastmod>2019-05-08T22:39:00-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://armandch.github.io/posts/</loc>
+    <lastmod>2019-05-08T22:39:00-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://armandch.github.io/posts/turntable-introduction/</loc>
+    <lastmod>2019-05-08T22:39:00-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://armandch.github.io/posts/oracle-unable-to-extend-temp-segment-in-tablespace/</loc>
+    <lastmod>2019-04-19T01:14:50-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://armandch.github.io/categories/technology/</loc>
+    <lastmod>2019-04-19T01:14:50-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://armandch.github.io/about/</loc>
+    <lastmod>2019-04-18T23:42:05-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://armandch.github.io/series/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://armandch.github.io/tags/</loc>
+    <priority>0</priority>
+  </url>
+  
+</urlset>

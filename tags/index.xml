@@ -1,0 +1,13 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>Tags on Chenism</title>
+		<link>https://armandch.github.io/tags/</link>
+		<description>Recent content in Tags on Chenism</description>
+		<generator>Hugo 0.55.5 -- gohugo.io</generator>
+		<language>en</language>
+		<managingEditor>armandch@gmail.com (I-Fan Chen)</managingEditor>
+		<webMaster>armandch@gmail.com (I-Fan Chen)</webMaster>
+		<copyright>I-Fan Chen — All rights reserved.</copyright>
+		<atom:link href="https://armandch.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+	</channel>
+</rss>
